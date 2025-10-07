@@ -1,8 +1,8 @@
 ---
-- hosts: web
+- name: deploy webserver and monitoring
+  hosts: web
   become: true
   roles:
-    - users
-    - security
+
     - webserver
     - monitoring
