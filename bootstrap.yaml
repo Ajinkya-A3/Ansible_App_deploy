@@ -1,8 +1,7 @@
 ---
-- name: initial security and user setup
+- name: Initial security and user setup
   hosts: web
   become: true
   roles:
     - users
     - security
-

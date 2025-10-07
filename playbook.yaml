@@ -1,5 +1,5 @@
 ---
-- name: deploy webserver and monitoring
+- name: Deploy webserver and monitoring
   hosts: web
   become: true
   roles:
