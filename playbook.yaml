@@ -3,6 +3,6 @@
   hosts: web
   become: true
   roles:
-
+    - security
     - webserver
     - monitoring
