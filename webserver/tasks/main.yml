@@ -1,3 +1,78 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# tasks file for webserver
+- name: Install dependencies (Python, pip, Git, Nginx)
+  package:
+    name:
+      - nginx
+      - python3
+      - python3-pip
+      - git
+    state: present
+
+- name: Clone To-Do app repository
+  git:
+    repo: "https://github.com/Ajinkya-A3/to-do-app.git"  # Replace with your repo
+    dest: /var/www/todo
+    version: main
+
+- name: Install Python dependencies
+  pip:
+    requirements: /var/www/todo/requirements.txt
+
+- name: Copy index.html if needed
+  copy:
+    src: index.html
+    dest: /var/www/todo/templates/index.html
+  ignore_errors: yes
+
+- name: Configure Nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/todo
+  notify: Restart nginx
+
+- name: Enable Nginx site
+  file:
+    src: /etc/nginx/sites-available/todo
+    dest: /etc/nginx/sites-enabled/todo
+    state: link
+    force: yes
+
+- name: Remove default site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Start and enable Nginx
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Create systemd service for Flask app
+  copy:
+    dest: /etc/systemd/system/todo.service
+    content: |
+      [Unit]
+      Description=To-Do Flask App
+      After=network.target
+
+      [Service]
+      User=www-data
+      WorkingDirectory=/var/www/todo
+      ExecStart=/usr/bin/python3 /var/www/todo/app.py
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Enable and start To-Do service
+  systemd:
+    name: todo
+    state: started
+    enabled: yes
+
+# Handler
+- name: Restart nginx
+  service:
+    name: nginx
+    state: restarted
