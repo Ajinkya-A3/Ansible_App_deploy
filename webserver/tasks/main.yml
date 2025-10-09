@@ -1,28 +1,29 @@
 ---
-- name: Install dependencies (Python, pip, Git, Nginx)
+- name: Install dependencies (Python, pip, venv, Git, Nginx)
   package:
     name:
       - nginx
       - python3
       - python3-pip
+      - python3-venv
       - git
     state: present
 
 - name: Clone To-Do app repository
   git:
-    repo: "https://github.com/Ajinkya-A3/to-do-app.git"  # Replace with your repo
+    repo: "https://github.com/Ajinkya-A3/to-do-app.git"
     dest: /var/www/todo
     version: main
 
-- name: Install Python dependencies
+- name: Create virtual environment
+  command: python3 -m venv /var/www/todo/venv
+  args:
+    creates: /var/www/todo/venv
+
+- name: Install Python dependencies in venv
   pip:
     requirements: /var/www/todo/requirements.txt
-
-- name: Copy index.html if needed
-  copy:
-    src: index.html
-    dest: /var/www/todo/templates/index.html
-  ignore_errors: yes
+    virtualenv: /var/www/todo/venv
 
 - name: Configure Nginx
   template:
@@ -59,7 +60,7 @@
       [Service]
       User=www-data
       WorkingDirectory=/var/www/todo
-      ExecStart=/usr/bin/python3 /var/www/todo/app.py
+      ExecStart=/var/www/todo/venv/bin/python /var/www/todo/app.py
       Restart=always
 
       [Install]
