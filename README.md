@@ -151,7 +151,7 @@ You can integrate this with Prometheus for real-time system monitoring.
 
 ---
 
-## 🖼️ Assets / Output
+## 🖼️ Output
 
 **Deployed Website Screenshot**
 ![Website](assets/website.png)
