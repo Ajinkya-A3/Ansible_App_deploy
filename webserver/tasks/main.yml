@@ -1,31 +1,38 @@
 ---
-- name: Install dependencies (Python, pip, venv, Git, Nginx)
+- name: Install required packages
   package:
     name:
-      - nginx
       - python3
       - python3-pip
       - python3-venv
       - git
+      - nginx
     state: present
+    update_cache: yes
 
-- name: Clone To-Do app repository
+- name: Clone Flask To-Do app repository
   git:
-    repo: "https://github.com/Ajinkya-A3/to-do-app.git"
+    repo: "https://github.com/Ajinkya-A3/to-do-app.git"  # Replace with your repo
     dest: /var/www/todo
     version: main
 
-- name: Create virtual environment
+- name: Create Python virtual environment
   command: python3 -m venv /var/www/todo/venv
   args:
     creates: /var/www/todo/venv
 
-- name: Install Python dependencies in venv
-  pip:
-    requirements: /var/www/todo/requirements.txt
-    virtualenv: /var/www/todo/venv
+- name: Install Python dependencies in virtual environment
+  command: /var/www/todo/venv/bin/pip install -r /var/www/todo/requirement.txt
+  args:
+    chdir: /var/www/todo
 
-- name: Configure Nginx
+- name: Copy index.html if needed
+  copy:
+    src: index.html
+    dest: /var/www/todo/templates/index.html
+  ignore_errors: yes
+
+- name: Configure Nginx site
   template:
     src: nginx.conf.j2
     dest: /etc/nginx/sites-available/todo
@@ -38,12 +45,12 @@
     state: link
     force: yes
 
-- name: Remove default site
+- name: Remove default Nginx site
   file:
     path: /etc/nginx/sites-enabled/default
     state: absent
 
-- name: Start and enable Nginx
+- name: Ensure Nginx is running
   service:
     name: nginx
     state: started
@@ -54,7 +61,7 @@
     dest: /etc/systemd/system/todo.service
     content: |
       [Unit]
-      Description=To-Do Flask App
+      Description=Flask To-Do App
       After=network.target
 
       [Service]
@@ -66,7 +73,7 @@
       [Install]
       WantedBy=multi-user.target
 
-- name: Enable and start To-Do service
+- name: Enable and start Flask app service
   systemd:
     name: todo
     state: started
